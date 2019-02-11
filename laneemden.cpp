@@ -29,17 +29,13 @@ void EulerIntegration(double n){
 
 
 
-
-
 int main(){
   outfile = ofstream("eulerint.csv");
-  if(!outfile.is_open())
-    throw "Could not open file.";
-  try {
-    EulerIntegration(n);
-  } catch (const char* error) {
-    printf("%s\n", error);
+  if(!outfile.is_open()) {
+      printf("Could not open file.\n");
+      return 0;
   }
+  EulerIntegration(n);
   outfile.close();
 }
 
