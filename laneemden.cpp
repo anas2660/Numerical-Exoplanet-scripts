@@ -40,6 +40,6 @@ int main(){
 }
 
 
-void WritePoint(double x, double y, double dy){
+void WritePoint(real x, real y, real dy){
   outfile << x << "," << y << "," << dy <<  endl;
 }
