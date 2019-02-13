@@ -1,25 +1,31 @@
 import ternary
 
-figure, tax = ternary.figure(scale=1.0)
+def plot(data, save="", show=False, **kwargs):
 
-# Draw Boundary and Gridlines
-tax.boundary(linewidth=1.0)
-tax.gridlines(multiple=0.1,color="black")
+    figure, tax = ternary.figure()
 
-tax.ticks(axis='lbr', multiple=0.125, linewidth=1, tick_formats = "%.1f", offset = 0.02)
-tax.clear_matplotlib_ticks()
+    # Draw Boundary and Gridlines
+    tax.boundary(linewidth=1.0)
+    tax.gridlines(multiple=0.1, color="black")
 
-# Set Axis labels and Title
-fontsize = 10
-tax.set_title("Various Lines", fontsize=20)
+    tax.ticks(axis='lbr', multiple=0.1, linewidth=1.0, tick_formats = "%.1f", offset = 0.02)
+    tax.ax.set_aspect("equal",adjustable='box')
+    tax.clear_matplotlib_ticks()
+    tax.ax.axis("off")
 
-tax.left_axis_label("$\\beta$ (silicate)", offset= 0.12)
-tax.right_axis_label("$\\gamma$ (water)", offset= 0.12)
-tax.bottom_axis_label("$\\alpha$ (iron)", offset= 0.12)
+    # Set Axis labels and Title
+    tax.left_axis_label("$\\beta$ (silicate)", offset= 0.16)
+    tax.right_axis_label("$\\gamma$ (water)", offset= 0.16)
+    tax.bottom_axis_label("$\\alpha$ (iron)", offset= 0.06)
 
-# Draw lines parallel to the axes
-tax.horizontal_line(0.6)
-tax.left_parallel_line(0.1, linewidth=2., color='red', linestyle="--")
-tax.right_parallel_line(0.2, linewidth=3., color='blue')
-
-tax.show()
+    tax.plot(data, **kwargs)
+    
+    if save != "":
+        figure.savefig(save, bbox_inches="tight")
+    
+    if show:
+        tax.show()
+        
+if __name__ == "__main__":
+    plot([[0.8,0.15,0.05],[0.2,0.3,0.5],[0.4,0.4,0.2]], show=True, color="red")
+    plot([[0.8,0.15,0.05],[0.2,0.3,0.5],[0.4,0.3,0.3]], show=True)
