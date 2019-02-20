@@ -1,19 +1,7 @@
-#define PLOT true
-#define ERROR errorf(ξ + dξ, θ)
-#define ½ (1.0/2.0)*
-#define N 5
-#define DKSI 0.4
-#include <cmath>
-#include <fstream>
-#include <assert.h>
-using namespace std;
-typedef double real;
-typedef double ℝ;
+#include "definitions.h"
+#include "csvwriter.h"
+#include <thread>
 
-void WritePoint(ofstream& outfile, ℝ x, ℝ y, ℝ dy);
-
-ofstream  eulercsv;
-ofstream  rungekuttacsv;
 
 // Analytical solution for n = 5
 ℝ θf5(ℝ ξ){
@@ -43,13 +31,14 @@ ofstream  rungekuttacsv;
 #endif
 
 void EulerIntegration(){
+  CSVWriter  csv("eulerint.csv");
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0;
-  WritePoint(eulercsv, ξ, θ, ERROR);
+  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     v += dv(ξ, θ) * dξ;
     θ += dθ(ξ, v) * dξ;
-    WritePoint(eulercsv, ξ, θ, ERROR);
+    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
     error += abs(ERROR);
   }
   printf("Euler error: %f\n", error);
@@ -57,9 +46,10 @@ void EulerIntegration(){
 
 
 void RungeKuttaFourthOrderIntegration() {
+  CSVWriter  csv("rungekuttaint.csv");
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0;
   ℝ k1, k2, k3, k4, kv1, kv2, kv3, kv4;
-  WritePoint(rungekuttacsv, ξ, θ, ERROR);
+  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v and theta
@@ -74,7 +64,7 @@ void RungeKuttaFourthOrderIntegration() {
     v += (kv2 + kv3 + ½ (kv1 + kv4)) / 3.0;
     θ += (k2 + k3 + ½ (k1 + k4)) / 3.0;
 
-    WritePoint(rungekuttacsv, ξ, θ, ERROR);
+    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
     error += abs(ERROR);
   }
   printf("Runge-Kutta error: %f\n", error);
@@ -82,23 +72,10 @@ void RungeKuttaFourthOrderIntegration() {
 
 
 
-
-
 int main(){
-  eulercsv = ofstream("eulerint.csv");
-  rungekuttacsv = ofstream("rungekuttaint.csv");
-  assert(eulercsv.is_open());
-  assert(rungekuttacsv.is_open());
-  EulerIntegration();
-  RungeKuttaFourthOrderIntegration();
-  eulercsv.close();
-  rungekuttacsv.close();
-  if (PLOT) {
-    system("python intplot.py");
-  }
-}
-
-
-void WritePoint(ofstream& outfile, ℝ x, ℝ y, ℝ dy){
-  outfile << x << "," << y << "," << dy <<  endl;
+  thread euler(EulerIntegration);
+  thread rungekutta(RungeKuttaFourthOrderIntegration);
+  euler.join();
+  rungekutta.join();
+  if (PLOT) system("python intplot.py");
 }
