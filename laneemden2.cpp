@@ -20,12 +20,12 @@ void EulerIntegration() {
   CSVWriter csv("eulerint.csv");
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = -1.0, error = 0;
   csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
-  error += abs(θf1(ξ + dξ) - θ);
+  error += abs(ERROR);
   for (ξ = 5 * dξ; ξ < ξmax; ξ += dξ) {
     v += dv(ξ, θ, v) * dξ;
     θ += dθ(v) * dξ;
     csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
-    error += abs(θf1(ξ + dξ) - θ);
+    error += abs(ERROR);
   }
   printf("Euler error: %f\n", error);
 }
@@ -34,7 +34,7 @@ void RungeKuttaIntegration() {
   CSVWriter csv("rungekuttaint.csv");
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0, kθ[4], kv[4];
   csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
-  error += abs(θf1(ξ + dξ) - θ);
+  error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v and theta
     kv[0] = dξ * dv(ξ, θ, v);
@@ -48,7 +48,7 @@ void RungeKuttaIntegration() {
     v += (kv[1] + kv[2] + ½(kv[0] + kv[3])) / 3.0;
     θ += (kθ[1] + kθ[2] + ½(kθ[0] + kθ[3])) / 3.0;
     csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
-    error += abs(θf1(ξ + dξ) - θ);
+    error += abs(ERROR);
   }
   printf("Runge-Kutta error: %f\n", error);
 }
