@@ -20,9 +20,9 @@ ofstream rungekuttacsv;
 // Analytical solution for n = 1
 ℝ θf1(ℝ ξ) { return sin(ξ) / ξ; }
 
-ℝ dv(ℝ ξ, ℝ θ, ℝ v) { return -((ξ * ξ) * pow(θ, n)) - 2 * ξ * v; }
+inline ℝ dv(ℝ ξ, ℝ θ, ℝ v) { return -(pow(θ, n)) - 2 * v / ξ; }
 
-ℝ dθ(ℝ v) { return v; }
+inline ℝ dθ(ℝ v) { return v; }
 
 void EulerIntegration() {
   ℝ θ = 1.0, ξ = 0, dξ = 0.05, ξmax = 10.0, v = -1.0, error = 0;
