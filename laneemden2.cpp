@@ -38,24 +38,38 @@ void EulerIntegration() {
 }
 
 void RungeKuttaFourthOrderIntegration() {
-  ℝ θ = 1.0, ξ = 0, dξ = 0.05, ξmax = 10.0, v = 0, k1, k2, k3, k4, error = 0;
+  ℝ θ = 1.0, ξ = 0, dξ = 0.05, ξmax = 10.0, v = 0, k1, k2, k3, k4, error = 0, k11, k12,k13,k14;
+  
+
   WritePoint(rungekuttacsv, ξ, θ, θf1(ξ + dξ) - θ);
   error += abs(θf1(ξ + dξ) - θ);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v
+    /*k1 = dξ * dv(ξ, θ, v);
+    k11 = dξ * dθ(v);
+    k2 = dξ * dv(ξ + ½ dξ, θ + ½ k11, v + ½ k1);
+    k12 =  dξ * dθ(v + ½ k1);
+    k3 = dξ * dv(ξ + ½ dξ, θ + ½ k12, v + ½ k2);
+    k13 = dξ * dθ(v + ½ k2);
+    k4 = dξ * dv(ξ + dξ, θ + k13, v + k3);
+    k14 = dξ * dθ(v + k3);
+    v += (k2 + k3 + ½(k1 + k4)) / 3.0;
+    θ += (k12 + k13 + ½(k11 + k14)) / 3.0;*/
     k1 = dξ * dv(ξ, θ, v);
     k2 = dξ * dv(ξ + ½ dξ, θ + ½ k1, v);
     k3 = dξ * dv(ξ + ½ dξ, θ + ½ k2, v);
     k4 = dξ * dv(ξ + dξ, θ + k3, v);
     v += (k2 + k3 + ½(k1 + k4)) / 3.0;
 
+    /*
+     */
     // Runge-Kutta step for θ
     /*
-    k1 = dξ * dθ(ξ, v);
-    k2 = dξ * dθ(ξ + ½ dξ, v + ½ k1);
-    k3 = dξ * dθ(ξ + ½ dξ, v + ½ k2);
-    k4 = dξ * dθ(ξ + dξ, v + k3);
-    θ += (k2 + k3 + ½(k1 + k4)) / 3.0;*/
+      k1 = dξ * dθ(ξ, v);
+      k2 = dξ * dθ(ξ + ½ dξ, v + ½ k1);
+      k3 = dξ * dθ(ξ + ½ dξ, v + ½ k2);
+      k4 = dξ * dθ(ξ + dξ, v + k3);
+      θ += (k2 + k3 + ½(k1 + k4)) / 3.0;*/
     θ += dθ(v) * dξ;
     WritePoint(rungekuttacsv, ξ, θ, θf1(ξ) - θ);
     error += abs(θf1(ξ + dξ) - θ);
