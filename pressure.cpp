@@ -1,4 +1,5 @@
 #include "csvwriter.h"
+#include "data.h"
 #include "definitions.h"
 
 inline ℝ dv(ℝ ξ, ℝ θ) { return -((ξ * ξ) * pow(θ, N)); }
@@ -16,8 +17,13 @@ inline ℝ errorf(ℝ ξ, ℝ θ) { return θf5(ξ) - θ; }
 inline ℝ errorf(ℝ ξ, ℝ θ) { return 0; }
 #endif
 
+/*real[2] Exoeqnew(real d, real m, real P, real a, real b, real M, real R, DATA
+A, DATA B, DATA C) { if (m > (a + b) * M) ydot = [-4. * pi.*(R - d).*(R -
+d).*density3(y(2), C); G.*y(1).*density3(y(2), C)./ (R - d)./ (R - d)];
+}*/
+
 void EulerIntegration() {
-  CSVWriter csv("eulerint.csv");
+  CSVWriter csv("euler.csv");
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0, m = 0, P = 0.0;
   csv.WritePointSimplify(log10(P), θ, 0, ξmax, 500);
   error += abs(ERROR);
@@ -29,6 +35,7 @@ void EulerIntegration() {
     csv.WritePointSimplify(log10(P), θ, 0, ξmax, 500);
     error += abs(ERROR);
   }
+
   printf("Euler error: %f\n", error);
 }
 
@@ -56,7 +63,8 @@ void RungeKuttaIntegration() {
 }
 
 int main() {
-  EulerIntegration();
+  /*  EulerIntegration();
   if (PLOT)
-    system("python intplot.py");
+    system("python intplot.py");*/
+  DensityPressureData silicate("data/silicate.txt");
 }
