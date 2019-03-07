@@ -15,5 +15,5 @@ private:
   vector<real> Density, Pressure;
 };
 
-#define DATA const DensityPressureData &
+#define DATA DensityPressureData &
 #endif
