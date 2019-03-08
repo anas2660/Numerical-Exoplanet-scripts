@@ -1,10 +1,17 @@
 #include "data.h"
 #include <fstream>
+#include <iostream>
+#include <string>
 
 DensityPressureData::DensityPressureData(const char *filename) {
-  ifstream file(filename);
-  if (!file.is_open())
-    throw;
+  string filepath(filename);
+  filepath = "data/" + filepath;
+  ifstream file(filepath.c_str());
+  if (!file.is_open()) {
+    cerr << "Could not open file: " << filepath << endl;
+    exit(-1);
+  }
+
   real d, p;
   while (file >> d >> p) {
     Density.emplace_back(d);
