@@ -122,25 +122,27 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
                y = {3.3, 3.4, 3.6, 3.9, 4.1, 4.4, 4.5};
   const real ratio = interpolate(x, y, M0);
   const real correction =
-      sqrt(pow((sigmaMun / M0), 2) + (ratio * pow(sigmaRun / R0, 2))) /
+      sqrt(pow((sigmaMun / M0), 2) + pow(ratio * (sigmaRun / R0), 2)) /
       (abs(sigmaMun / M0) + ratio * abs(sigmaRun / R0));
   const real sigmaM = correction * sigmaMun;
   const real sigmaR = correction * sigmaRun;
 
   for (int v = -3; v < 4; v++) {
 
-    real M = M0 * (1 + v * sigmaM / M0) * Mearth;
-    real R = R0 * (1 - v * sigmaR / R0) * Rearth;
+    real M = M0 * (1.0 + v * sigmaM / M0) * Mearth;
+    real R = R0 * (1.0 - v * sigmaR / R0) * Rearth;
 
     int i = 0;
-    real m0 = M0, P0 = 0, j = 0, k = 0, a = 0, b, mid, l, u1, u2, sign;
-    real w[7]{0, 0, 0, 0, 0, 0, 0};
-    while (((a >= 0) && (a <= 1)) && (j * k < 0.5)) {
-      mid = (1 - a) / 2;
+    bool u1 = false, u2 = false, j = false, k = false;
+    real m0 = M0, P0 = 0, a = 0.0, b, mid, l, sign;
+    // real w[7]{0, 0, 0, 0, 0, 0, 0};
+    while (((a >= 0.0) && (a <= 1.0)) && !(j && k)) {
+
+      mid = (1.0 - a) / 2.0;
       b = mid;
       l = mid / 2;
-      u1 = 0;
-      u2 = 0;
+      //      printf("l : %f\n", l);
+      u1 = u2 = false;
       while (l > 5e-4) {
         // Solve the ODEs :
         vector<odeout> out = ode45(0, 0.9999 * R, m0, P0, a, b, m0, R, A, B, C);
@@ -149,33 +151,34 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
         // Improve to Newton's method
         if (sign > 0) {
           b += l;
-          u1 = 1;
+          u1 = true;
         } else {
           b -= l;
-          u2 = 1;
+          u2 = true;
         }
         l /= 2.0;
         out.clear(); // no need since it leaves scope anyways
       }
-      if (u1 * u2 > 0.5) {
+      if (u1 && u2) {
         i++;
         iron[v + 3][i - 1] = a;
         silicate[v + 3][i - 1] = b;
-        j = 1;
-        k = 0;
+        j = true;
+        k = false;
       } else {
-        k = 1;
+        k = true;
       }
-
-      a = a + step;
+      a += step;
     }
+    printf("i : %d\n", i);
+
     if (i > 3) {
       vector<real> ta(iron[v + 3].begin(), iron[v + 3].begin() + i),
           tb(silicate[v + 3].begin(), silicate[v + 3].begin() + i);
       vector<real> p1 = polyfit(ta, tb, 3);
       silicatenew[v + 3] = polyval(p1, ta);
       hd[v + 3] = ternplot(ta, silicatenew[v + 3]);
-    } else if ((real)i > 0.5) {
+    } else if (i > 0) {
       vector<real> ta(iron[v + 3].begin(), iron[v + 3].begin() + i),
           tb(silicate[v + 3].begin(), silicate[v + 3].begin() + i);
       hd[v + 3] = ternplot(ta, tb);
@@ -191,5 +194,18 @@ int main() {
   /*  EulerIntegration();
   if (PLOT)
     system("python intplot.py");*/
-  ExoterDE(4.8, 0.8, 1.68, 0.09);
+
+  // Planet 1
+  // ExoterDE(4.8, 0.8, 1.68, 0.09);
+  ExoterDE(6.55, 0.98, 2.678, 0.13);
+
+  // Output plot
+  for (int i = 0; i < hd.size(); i++) {
+    string filepath = "out/plot" + to_string(i) + ".csv";
+    ofstream file(filepath);
+    for (auto it = hd[i].begin(); it != hd[i].end(); ++it) {
+      file << it->x << "," << it->y << endl;
+    }
+    file.close();
+  }
 }

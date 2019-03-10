@@ -20,8 +20,7 @@ build/polyfit.o: polyfit.cpp polyfit.h
 	clang++ -g -c polyfit.cpp -O3 -std=c++17 -o build/polyfit.o
 
 clean:
-	rm -f ./laneemden1 ./laneemden2 build/*
+	rm -f ./laneemden1 ./laneemden2 build/* out/*
 
-install:
-	echo "installed"
-
+dirs:
+	mkdir build out
