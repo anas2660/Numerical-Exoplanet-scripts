@@ -1,5 +1,8 @@
-#include "csvwriter.h"
 #include "definitions.h"
+#include <fstream>
+#include <future>
+#include <iostream>
+#include <numeric>
 
 inline ℝ dv(ℝ ξ, ℝ θ) { return -((ξ * ξ) * pow(θ, N)); }
 
@@ -16,25 +19,22 @@ inline ℝ errorf(ℝ ξ, ℝ θ) { return θf5(ξ) - θ; }
 inline ℝ errorf(ℝ ξ, ℝ θ) { return 0; }
 #endif
 
-real EulerIntegration() {
-  CSVWriter csv("eulerint.csv");
-  ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0;
-  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+real EulerIntegration(unsigned int steps) {
+  ℝ θ = 1.0, ξ = 0, ξmax = 10.0, v = 0, error = 0;
+  real dξ = ξmax / (real)steps;
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     v += dv(ξ, θ) * dξ;
     θ += dθ(ξ, v) * dξ;
-    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
     error += abs(ERROR);
   }
-  printf("Euler error: %f\n", error);
   return error;
 }
 
-real RungeKuttaIntegration() {
-  CSVWriter csv("rungekuttaint.csv");
-  ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0, kθ[4], kv[4];
-  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+real RungeKuttaIntegration(unsigned int steps) {
+  ℝ θ = 1.0, ξ = 0, ξmax = 10.0, v = 0, error = 0, kθ[4], kv[4];
+  real dξ = ξmax / (real)steps;
+  // csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v and theta
@@ -48,19 +48,32 @@ real RungeKuttaIntegration() {
     kθ[3] = dξ * dθ(ξ + dξ, v + kv[2]);
     v += (kv[1] + kv[2] + ½(kv[0] + kv[3])) / 3.0;
     θ += (kθ[1] + kθ[2] + ½(kθ[0] + kθ[3])) / 3.0;
-    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+    // csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
     error += abs(ERROR);
   }
-  printf("Runge-Kutta error: %f\n", error);
   return error;
 }
 
 int main() {
+  int a;
+  cout << "Antal punkter: ";
+  cin >> a;
+  const unsigned int points = a;
+  vector<unsigned int> steps(points);
+  std::iota(steps.begin(), steps.end(), 1);
+  future<real> eulererrors[points];
+  future<real> rkerrors[points];
+  for (unsigned int i = 0; i < points; i++) {
+    eulererrors[i] = async(launch::async, EulerIntegration, steps[i]);
+    rkerrors[i] = async(launch::async, RungeKuttaIntegration, steps[i]);
+  }
+  ofstream file("error.csv");
+  for (unsigned int i = 0; i < points; i++) {
+    file << steps[i] << "," << eulererrors[i].get() << "," << rkerrors[i].get()
+         << endl;
+  }
+  file.close();
 
-  thread euler(EulerIntegration);
-  thread rungekutta(RungeKuttaIntegration);
-  euler.join();
-  rungekutta.join();
   if (PLOT)
-    system("python intplot.py");
+    system("python errplot.py");
 }
