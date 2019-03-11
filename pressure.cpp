@@ -98,7 +98,7 @@ vector<PlotPoint> ternplot(const vector<real> &c1, const vector<real> &c2) {
   for (int i = 0; i < c1.size(); i++) {
     // out[i] = {0.5 * (1.0 + c1[i] - c2[i]),
     //          (sqrt(3.0) / 2.0) * (1.0 - c1[i] - c2[i])};
-    out[i] = {c2[i], c1[i]};
+    out[i] = {c1[i], c2[i]};
   }
   return out;
 }
