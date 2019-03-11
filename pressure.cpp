@@ -96,31 +96,32 @@ struct PlotPoint {
 vector<PlotPoint> ternplot(const vector<real> &c1, const vector<real> &c2) {
   vector<PlotPoint> out(c1.size());
   for (int i = 0; i < c1.size(); i++) {
-    out[i] = {0.5 * (1.0 + c1[i] - c2[i]),
-              (sqrt(3.0) / 2.0) * (1.0 - c1[i] - c2[i])};
+    // out[i] = {0.5 * (1.0 + c1[i] - c2[i]),
+    //          (sqrt(3.0) / 2.0) * (1.0 - c1[i] - c2[i])};
+    out[i] = {c2[i], c1[i]};
   }
   return out;
 }
 
 // outer index : v, inner index : i
-vector<vector<real>> iron(7);
-vector<vector<real>> silicate(7);
-vector<vector<real>> silicatenew(7);
-vector<vector<PlotPoint>> hd(7);
+// vector<vector<PlotPoint>> hd(7);
 
-void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
+vector<vector<PlotPoint>> ExoterDE(real M0, real sigmaMun, real R0,
+                                   real sigmaRun) {
   // Initialize vectors
-  for (int i = 0; i < iron.size(); i++) {
-    iron[i] = vector<real>(5);
-    silicate[i] = vector<real>(5);
-    // silicatenew[i] = vector<real>(5);
+  vector<vector<PlotPoint>> hd(7);
+  vector<real> iron[7];
+  vector<real> silicate[7];
+  vector<real> silicatenew[7];
+  for (int i = 0; i < 7; i++) {
+    iron[i] = vector<real>();
+    silicate[i] = vector<real>();
+    silicatenew[i] = vector<real>();
   }
   DensityPressureData A("iron.txt"), B("silicate.txt"), C("water.txt");
   const real step = 0.005;
-
-  vector<real> x = {0.5, 1, 2, 4, 8, 16, 20},
-               y = {3.3, 3.4, 3.6, 3.9, 4.1, 4.4, 4.5};
-  const real ratio = interpolate(x, y, M0);
+  const real ratio = interpolate({0.5, 1, 2, 4, 8, 16, 20},
+                                 {3.3, 3.4, 3.6, 3.9, 4.1, 4.4, 4.5}, M0);
   const real correction =
       sqrt(pow((sigmaMun / M0), 2) + pow(ratio * (sigmaRun / R0), 2)) /
       (abs(sigmaMun / M0) + ratio * abs(sigmaRun / R0));
@@ -134,8 +135,9 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
 
     int i = 0;
     bool u1 = false, u2 = false, j = false, k = false;
-    real m0 = M0, P0 = 0, a = 0.0, b, mid, l, sign;
+    real m0 = M0, P0 = 0, a = 0.0, b, mid, l, sign, lastm, lastsign;
     // real w[7]{0, 0, 0, 0, 0, 0, 0};
+
     while (((a >= 0.0) && (a <= 1.0)) && !(j && k)) {
 
       mid = (1.0 - a) / 2.0;
@@ -143,10 +145,12 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
       l = mid / 2;
       //      printf("l : %f\n", l);
       u1 = u2 = false;
-      while (l > 5e-4) {
-        // Solve the ODEs :
-        vector<odeout> out = ode45(0, 0.9999 * R, m0, P0, a, b, m0, R, A, B, C);
-        sign = out.back().m / M;
+      while ((l > 5e-4)) {
+        // Solve the ODEs : // 0.9999 *
+        odeout out = ode45(0, R, M, P0, a, b, M, R, A, B, C);
+        sign = out.m / M;
+        lastm = out.m;
+        lastsign = sign;
 
         // Improve to Newton's method
         if (sign > 0) {
@@ -157,12 +161,13 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
           u2 = true;
         }
         l /= 2.0;
-        out.clear(); // no need since it leaves scope anyways
+        // out.clear(); // no need since it leaves scope anyways
       }
+
       if (u1 && u2) {
         i++;
-        iron[v + 3][i - 1] = a;
-        silicate[v + 3][i - 1] = b;
+        iron[v + 3].push_back(a);
+        silicate[v + 3].push_back(b);
         j = true;
         k = false;
       } else {
@@ -170,7 +175,7 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
       }
       a += step;
     }
-    printf("i : %d\n", i);
+    printf("i : %d\tm : %f\t ratio : %f\n", i, lastm, lastsign);
 
     if (i > 3) {
       vector<real> ta(iron[v + 3].begin(), iron[v + 3].begin() + i),
@@ -183,11 +188,12 @@ void ExoterDE(real M0, real sigmaMun, real R0, real sigmaRun) {
           tb(silicate[v + 3].begin(), silicate[v + 3].begin() + i);
       hd[v + 3] = ternplot(ta, tb);
     } else {
-      hd[v + 3] = vector<PlotPoint>();
+      // hd[v + 3] = vector<PlotPoint>();
       printf("Curve for mass=%f and radius=%f does not exist.\n",
              M0 * (1 + v * sigmaM), R0 * (1 - v * sigmaR));
     }
   }
+  return hd;
 }
 
 int main() {
@@ -196,14 +202,14 @@ int main() {
     system("python intplot.py");*/
 
   // Planet 1
-  // ExoterDE(4.8, 0.8, 1.68, 0.09);
-  ExoterDE(6.55, 0.98, 2.678, 0.13);
+  auto curves = ExoterDE(4.8, 0.8, 1.68, 0.09);
+  // ExoterDE(6.55, 0.98, 2.678, 0.13);
 
   // Output plot
-  for (int i = 0; i < hd.size(); i++) {
+  for (int i = 0; i < curves.size(); i++) {
     string filepath = "out/plot" + to_string(i) + ".csv";
     ofstream file(filepath);
-    for (auto it = hd[i].begin(); it != hd[i].end(); ++it) {
+    for (auto it = curves[i].begin(); it != curves[i].end(); ++it) {
       file << it->x << "," << it->y << endl;
     }
     file.close();

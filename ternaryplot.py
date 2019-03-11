@@ -29,8 +29,6 @@ def plot(data, save="", show=False, figure=None, **kwargs):
     if save != "":
         fig.savefig(save, bbox_inches="tight")
     
-    if show:
-        tax.show()
     
 if __name__ == "__main__":
     if len(sys.argv) <= 1:
@@ -44,5 +42,7 @@ if __name__ == "__main__":
                 plot(data, show=True, color="red", figure=fig)
             except Exception as e:
                 print(e, file=sys.stderr)
+        fig[1].show()
+
 else:
     print("Program not called directly.", file=sys.stderr)
