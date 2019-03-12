@@ -28,13 +28,12 @@ real EulerIntegration(unsigned int steps) {
     θ += dθ(ξ, v) * dξ;
     error += abs(ERROR);
   }
-  return error;
+  return error / (real)steps;
 }
 
 real RungeKuttaIntegration(unsigned int steps) {
   ℝ θ = 1.0, ξ = 0, ξmax = 10.0, v = 0, error = 0, kθ[4], kv[4];
   real dξ = ξmax / (real)steps;
-  // csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v and theta
@@ -48,10 +47,9 @@ real RungeKuttaIntegration(unsigned int steps) {
     kθ[3] = dξ * dθ(ξ + dξ, v + kv[2]);
     v += (kv[1] + kv[2] + ½(kv[0] + kv[3])) / 3.0;
     θ += (kθ[1] + kθ[2] + ½(kθ[0] + kθ[3])) / 3.0;
-    // csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
     error += abs(ERROR);
   }
-  return error;
+  return error / (real)steps;
 }
 
 int main() {
