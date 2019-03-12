@@ -9,7 +9,6 @@ public:
   ~DensityPressureData();
 
   real GetDensity(real P);
-  // real GetPressure(real d);
 
 private:
   vector<real> Density, Pressure;

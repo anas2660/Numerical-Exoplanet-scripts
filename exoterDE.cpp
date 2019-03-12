@@ -41,8 +41,6 @@ struct PlotPoint {
 vector<PlotPoint> ternplot(const vector<real> &c1, const vector<real> &c2) {
   vector<PlotPoint> out(c1.size());
   for (int i = 0; i < c1.size(); i++) {
-    // out[i] = {0.5 * (1.0 + c1[i] - c2[i]),
-    //          (sqrt(3.0) / 2.0) * (1.0 - c1[i] - c2[i])};
     out[i] = {c1[i], c2[i]};
   }
   return out;
@@ -54,6 +52,7 @@ void ExoterDE(const string &title, real M0, real sigmaMun, real R0,
 
   // Initialize vectors
   vector<vector<PlotPoint>> hd(7);
+
   vector<real> iron[7];
   vector<real> silicate[7];
   vector<real> silicatenew[7];
@@ -62,6 +61,7 @@ void ExoterDE(const string &title, real M0, real sigmaMun, real R0,
     silicate[i] = vector<real>();
     silicatenew[i] = vector<real>();
   }
+
   DensityPressureData A("iron.txt"), B("silicate.txt"), C("water.txt");
   const real step = 0.005;
   const real ratio = interpolate({0.5, 1, 2, 4, 8, 16, 20},
@@ -73,17 +73,15 @@ void ExoterDE(const string &title, real M0, real sigmaMun, real R0,
   const real sigmaR = correction * sigmaRun;
 
   for (int v = -3; v < 4; v++) {
-
     real M = M0 * (1.0 + v * sigmaM / M0) * Mearth;
     real R = R0 * (1.0 - v * sigmaR / R0) * Rearth;
 
     int i = 0;
     bool u1 = false, u2 = false, j = false, k = false;
-    real m0 = M0, P0 = 0, a = 0.0, b, mid, l, sign, lastm, lastsign;
+    real P0 = 0, a = 0.0, b, mid, l, sign, lastm, lastsign;
     // real w[7]{0, 0, 0, 0, 0, 0, 0};
 
     while (((a >= 0.0) && (a <= 1.0)) && !(j && k)) {
-
       mid = (1.0 - a) / 2.0;
       b = mid;
       l = mid / 2;
@@ -122,17 +120,12 @@ void ExoterDE(const string &title, real M0, real sigmaMun, real R0,
     printf("i : %d\tm : %f\t ratio : %f\n", i, lastm, lastsign);
 
     if (i > 3) {
-      vector<real> ta(iron[v + 3].begin(), iron[v + 3].begin() + i),
-          tb(silicate[v + 3].begin(), silicate[v + 3].begin() + i);
-      vector<real> p1 = polyfit(ta, tb, 3);
-      silicatenew[v + 3] = polyval(p1, ta);
-      hd[v + 3] = ternplot(ta, silicatenew[v + 3]);
+      vector<real> p1 = polyfit(iron[v + 3], silicate[v + 3], 3);
+      silicatenew[v + 3] = polyval(p1, iron[v + 3]);
+      hd[v + 3] = ternplot(iron[v + 3], silicatenew[v + 3]);
     } else if (i > 0) {
-      vector<real> ta(iron[v + 3].begin(), iron[v + 3].begin() + i),
-          tb(silicate[v + 3].begin(), silicate[v + 3].begin() + i);
-      hd[v + 3] = ternplot(ta, tb);
+      hd[v + 3] = ternplot(iron[v + 3], silicate[v + 3]);
     } else {
-      // hd[v + 3] = vector<PlotPoint>();
       printf("Curve for mass=%f and radius=%f does not exist.\n",
              M0 * (1 + v * sigmaM), R0 * (1 - v * sigmaR));
     }
