@@ -50,8 +50,9 @@ if __name__ == "__main__":
                     plot(data, color=colors[i], figure=fig)
                 except Exception as e:
                         print(e, file=sys.stderr)
-            fig[0].savefig("out/"+arg+".pdf", bbox_inches='tight',
-                           pad_inches=0)
+            fig[1]._redraw_labels()
+            plt.savefig("out/"+arg+".pdf", bbox_inches='tight',
+                        pad_inches=0)
     plt.show()
 else:
     print("Program not called directly.", file=sys.stderr)
