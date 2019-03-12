@@ -15,7 +15,7 @@ inline ℝ dθ(ℝ ξ, ℝ v) { return v * (1.0 / (ξ * ξ)); }
     θ += dθ(ξ, v) * dξ;
     error += abs(ERROR);
   }
-  return error / (real)steps;
+  return error / (ℝ)steps;
 }
 
 ℝ RungeKuttaIntegration(unsigned int steps) {
@@ -36,7 +36,7 @@ inline ℝ dθ(ℝ ξ, ℝ v) { return v * (1.0 / (ξ * ξ)); }
     θ += (kθ[1] + kθ[2] + ½(kθ[0] + kθ[3])) / 3.0;
     error += abs(ERROR);
   }
-  return error / (real)steps;
+  return error / (ℝ)steps;
 }
 
 int main(int argc, char *argv[]) {
