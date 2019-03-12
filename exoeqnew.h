@@ -38,15 +38,11 @@ ydot Exoeqnew(real d, real m, real P, real a, real b, real M, real R, DATA A,
 
 #if USING_BOOST == 0
 #else
-//#include <boost/numeric/odeint.hpp>
-
 odeout ode45(real di, real df, real inm, real inP, real a, real b, real M,
              real R, DATA A, DATA B, DATA C) {
-  // CSVWriter csv("rungekuttaint.csv");
   real m = inm, P = inP;
   odeout out;
   real d = di, dd = (df - di) / 2500.0, km[4], kP[4];
-  // out.push_back({d, m, P});
   ydot result;
   for (d += dd; d < df; d += dd) {
     // Runge-Kutta step for v and theta

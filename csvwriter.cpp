@@ -1,45 +1,35 @@
 #include "csvwriter.h"
+#include <algorithm>
 #include <assert.h>
-
-CSVWriter::CSVWriter(const char* filename) : file(filename), lastx(0){
+#include <functional>
+CSVWriter::CSVWriter(const string &filename, size_t columns)
+    : file(filename), lastx(0), rowsize(columns) {
   assert(file.is_open());
 }
-
-CSVWriter::~CSVWriter(){
-  // Write whats left
-  // Calculate average
-  Point avg = getAverage();
-  // Write average
-  file << avg.x << "," << avg.y << "," << avg.z << std::endl;
-  buffer.clear();
+CSVWriter::~CSVWriter() {
+  if (buffer.size() > 0) // Write whats left
+    WritePoint(getAverage());
   file.close();
 }
-
-
-CSVWriter::Point CSVWriter::getAverage(){
-  Point avg = {0, 0, 0};
-  for (auto it = buffer.begin(); it != buffer.end(); ++it) {
-    avg.x += it->x;
-    avg.y += it->y;
-    avg.z += it->z;
-  }
-  avg.x /= (real)buffer.size();
-  avg.y /= (real)buffer.size();
-  avg.z /= (real)buffer.size();
+CSVWriter::row CSVWriter::getAverage() {
+  row avg(rowsize);
+  for (auto row : buffer)
+    avg += row;
+  avg /= (ℝ)buffer.size();
+  buffer.clear();
   return avg;
 }
-
-
-void CSVWriter::WritePointSimplify(ℝ x, ℝ y, ℝ dy, ℝ xmax, ℝ numpoints){
-  buffer.push_back({x, y, dy});
-  const real dx = xmax / numpoints;
-  if(x >= lastx+dx){
-    // Calculate average
-    Point avg = getAverage();
-
-    // Write average
-    file << avg.x << "," << avg.y << "," << avg.z << std::endl;
-    buffer.clear();
+void CSVWriter::WritePoint(row Row, ℝ xmax, ℝ numpoints) {
+  buffer.push_back(Row);
+  const ℝ dx = xmax / numpoints;
+  if (Row[0] >= lastx + dx) {
+    WritePoint(getAverage());
     lastx += dx;
   }
+}
+void CSVWriter::WritePoint(row Row) {
+  file << Row[0];
+  if (rowsize > 1)
+    for_each(begin(Row) + 1, end(Row), [=](ℝ &n) { file << "," << n; });
+  file << endl;
 }

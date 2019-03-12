@@ -5,14 +5,12 @@
 
 class DensityPressureData {
 public:
-  DensityPressureData(const char *filename);
+  DensityPressureData(const string &filename);
   ~DensityPressureData();
-
-  real GetDensity(real P);
+  ℝ GetDensity(ℝ P);
 
 private:
-  vector<real> Density, Pressure;
+  vector<ℝ> Density, Pressure;
 };
-
 #define DATA DensityPressureData &
 #endif

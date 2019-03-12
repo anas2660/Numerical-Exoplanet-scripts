@@ -6,10 +6,8 @@
 #include <tuple>
 #include <vector>
 
-//////////////////////////////////////////////////////////////////////////////////
 // Polyfit implementation gotten from,
 // http://www.vilipetek.com/2013/10/17/polynomial-fitting-in-c-not-using-boost/
-//////////////////////////////////////////////////////////////////////////////////
 
 template <class T> class matrix {
 public:
@@ -64,13 +62,9 @@ public:
     }
     return oResult;
   }
-
   inline unsigned int rows() { return m_nRows; }
-
   inline unsigned int cols() { return m_nCols; }
-
   inline vector<T> data() { return m_oData; }
-
   void print() {
     for (unsigned int r = 0; r < m_nRows; r++) {
       for (unsigned int c = 0; c < m_nCols; c++) {
@@ -90,38 +84,19 @@ private:
 template <typename T> class Givens {
 public:
   Givens() : m_oJ(2, 2), m_oQ(1, 1), m_oR(1, 1) {}
-
-  /*
-          Calculate the inverse of a matrix using the QR decomposition.
-
-          param:
-                  A	matrix to inverse
-  */
-  const matrix<T> Inverse(matrix<T> &oMatrix) {
-    if (oMatrix.cols() != oMatrix.rows()) {
-      throw domain_error("matrix has to be square");
-    }
-    matrix<T> oIdentity = matrix<T>::identity(oMatrix.rows());
-    Decompose(oMatrix);
-    return Solve(oIdentity);
-  }
-
   /*
           Performs QR factorization using Givens rotations.
   */
   void Decompose(matrix<T> &oMatrix) {
     int nRows = oMatrix.rows();
     int nCols = oMatrix.cols();
-
     if (nRows == nCols) {
       nCols--;
     } else if (nRows < nCols) {
       nCols = nRows - 1;
     }
-
     m_oQ = matrix<T>::identity(nRows);
     m_oR = oMatrix;
-
     for (int j = 0; j < nCols; j++) {
       for (int i = j + 1; i < nRows; i++) {
         GivensRotation(m_oR(j, j), m_oR(i, j));
@@ -151,9 +126,7 @@ public:
 
     return oS;
   }
-
   const matrix<T> &GetQ() { return m_oQ; }
-
   const matrix<T> &GetR() { return m_oR; }
 
 private:
@@ -183,7 +156,6 @@ private:
     m_oJ(1, 0) = s;
     m_oJ(1, 1) = c;
   }
-
   /*
           Get the premultiplication of a given matrix
           by the Givens rotation.

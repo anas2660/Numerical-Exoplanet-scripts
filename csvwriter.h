@@ -1,27 +1,23 @@
 #ifndef CSVWRITER_H
 #define CSVWRITER_H
-
 #include "definitions.h"
-#include <fstream> // File streams
-#include <vector> // Dynamic lists
+#include <fstream>
+#include <valarray>
+#include <vector>
 
-class CSVWriter
-{
+class CSVWriter {
 public:
-  CSVWriter(const char* filename);
+  typedef valarray<ℝ> row;
+  CSVWriter(const string &filename, size_t columns);
   ~CSVWriter();
-
-  void WritePointSimplify(ℝ x, ℝ y, ℝ dy, ℝ xmax, ℝ numpoints);
+  void WritePoint(row Row, ℝ xmax, ℝ numpoints);
+  void WritePoint(row Row);
 
 private:
-  struct Point{ real x, y, z; }; // 3D point structure
-
-  ofstream file; // Out-filestream
-  vector<Point> buffer; // Point buffer
-  real lastx;
-
-  Point getAverage();
-
+  ofstream file;      // Out filestream
+  vector<row> buffer; // Simplification buffer
+  ℝ lastx;
+  size_t rowsize;
+  row getAverage();
 };
-
 #endif

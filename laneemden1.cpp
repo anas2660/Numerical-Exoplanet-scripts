@@ -2,39 +2,25 @@
 #include "definitions.h"
 
 inline ℝ dv(ℝ ξ, ℝ θ) { return -((ξ * ξ) * pow(θ, N)); }
-
 inline ℝ dθ(ℝ ξ, ℝ v) { return v * (1.0 / (ξ * ξ)); }
 
-// Analytical solutions to calculate error
-#if N == 1
-inline ℝ θf1(ℝ ξ) { return sin(ξ) / ξ; }
-inline ℝ errorf(ℝ ξ, ℝ θ) { return θf1(ξ) - θ; }
-#elif N == 5
-inline ℝ θf5(ℝ ξ) { return 1.0 / sqrt(1.0 + (ξ * ξ / 3.0)); }
-inline ℝ errorf(ℝ ξ, ℝ θ) { return θf5(ξ) - θ; }
-#else
-inline ℝ errorf(ℝ ξ, ℝ θ) { return 0; }
-#endif
-
-real EulerIntegration() {
-  CSVWriter csv("eulerint.csv");
+void EulerIntegration() {
+  CSVWriter csv("eulerint.csv", 3);
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0;
-  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+  csv.WritePoint({ξ, θ, ERROR}, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     v += dv(ξ, θ) * dξ;
     θ += dθ(ξ, v) * dξ;
-    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+    csv.WritePoint({ξ, θ, ERROR}, ξmax, 200);
     error += abs(ERROR);
   }
-  printf("Euler error: %f\n", error);
-  return error;
+  printf("Euler error: %f\n", dξ * error / ξmax);
 }
-
-real RungeKuttaIntegration() {
-  CSVWriter csv("rungekuttaint.csv");
+void RungeKuttaIntegration() {
+  CSVWriter csv("rungekuttaint.csv", 3);
   ℝ θ = 1.0, ξ = 0, dξ = DKSI, ξmax = 10.0, v = 0, error = 0, kθ[4], kv[4];
-  csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+  csv.WritePoint({ξ, θ, ERROR}, ξmax, 200);
   error += abs(ERROR);
   for (ξ = dξ; ξ < ξmax; ξ += dξ) {
     // Runge-Kutta step for v and theta
@@ -48,15 +34,13 @@ real RungeKuttaIntegration() {
     kθ[3] = dξ * dθ(ξ + dξ, v + kv[2]);
     v += (kv[1] + kv[2] + ½(kv[0] + kv[3])) / 3.0;
     θ += (kθ[1] + kθ[2] + ½(kθ[0] + kθ[3])) / 3.0;
-    csv.WritePointSimplify(ξ, θ, ERROR, ξmax, 200);
+    csv.WritePoint({ξ, θ, ERROR}, ξmax, 200);
     error += abs(ERROR);
   }
-  printf("Runge-Kutta error: %f\n", error);
-  return error;
+  printf("Runge-Kutta error: %f\n", dξ * error / ξmax);
 }
 
 int main() {
-
   thread euler(EulerIntegration);
   thread rungekutta(RungeKuttaIntegration);
   euler.join();
