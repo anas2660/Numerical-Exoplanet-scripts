@@ -1,16 +1,14 @@
 #ifndef DATA_H
 #define DATA_H
 #include "definitions.h"
-#include <vector>
-
 class DensityPressureData {
-public:
+ public:
   DensityPressureData(const string &filename);
   ~DensityPressureData();
   ℝ GetDensity(ℝ P);
 
-private:
+ private:
   vector<ℝ> Density, Pressure;
 };
-#define DATA DensityPressureData &
+#define DATA DensityPressureData
 #endif

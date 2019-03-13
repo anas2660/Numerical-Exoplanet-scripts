@@ -1,23 +1,20 @@
 #ifndef CSVWRITER_H
 #define CSVWRITER_H
-#include "definitions.h"
 #include <fstream>
-#include <valarray>
-#include <vector>
-
+#include "definitions.h"
 class CSVWriter {
-public:
-  typedef valarray<ℝ> row;
+ public:
+  typedef valarray<ℝ> Row;
   CSVWriter(const string &filename, size_t columns);
   ~CSVWriter();
-  void WritePoint(row Row, ℝ xmax, ℝ numpoints);
-  void WritePoint(row Row);
+  void WritePoint(Row row, ℝ xmax, ℝ numpoints);
+  void WritePoint(Row row);
 
-private:
-  ofstream file;      // Out filestream
-  vector<row> buffer; // Simplification buffer
+ private:
+  ofstream file;       // Out filestream
+  vector<Row> buffer;  // Simplification buffer
   ℝ lastx;
   size_t rowsize;
-  row getAverage();
+  Row getAverage();
 };
 #endif

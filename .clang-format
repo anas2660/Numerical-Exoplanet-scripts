@@ -1,0 +1,13 @@
+
+BasedOnStyle: Google
+AllowShortCaseLabelsOnASingleLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+AlwaysBreakTemplateDeclarations: No
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+AllowShortBlocksOnASingleLine: true 
+AllowShortIfStatementsOnASingleLine: true 
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All 
+
+Language: Cpp
+Standard: Cpp11

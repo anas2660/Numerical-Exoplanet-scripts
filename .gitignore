@@ -170,6 +170,7 @@ dmypy.json
 
 ### Python Patch ###
 .venv/
+out/
 
 # End of https://www.gitignore.io/api/c++,data,python
 

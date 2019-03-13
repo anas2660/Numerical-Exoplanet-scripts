@@ -3,102 +3,65 @@
 #include "definitions.h"
 #include "exoeqnew.h"
 #include "polyfit.h"
-
-real linear(real x1, real y1, real x2, real y2, real x) {
-  const real a = (y2 - y1) / (x2 - x1);
-  const real b = y1 - a * x1;
-  return a * x + b;
+inline ℝ linear(ℝ x1, ℝ y1, ℝ x2, ℝ y2, ℝ x) {
+  return ((y2 - y1) / (x2 - x1)) * (x - x1) + y1;
 }
-
 // Linear instead of pchip, extrapolates by default
-real interpolate(const vector<real> &x, const vector<real> &y, real point) {
-  assert(x.size() == y.size());
-  // Extrapolate linearly
-  if (x.front() > point)
-    return linear(x[0], y[0], x[1], y[1], point);
-  else if (x.back() < point)
+ℝ interpolate(const vector<ℝ> &x, const vector<ℝ> &y, ℝ point) {
+  assert(x.size() == y.size());  // Extrapolate linearly
+  if (x.front() > point) return linear(x[0], y[0], x[1], y[1], point);
+  if (x.back() < point)
     return linear(x.end()[-2], y.end()[-2], x.back(), y.back(), point);
-
-  // Interpolate
-  real lastx = x.front(), lasty = y.front();
+  array<ℝ, 2> last = {x.front(), y.front()};  // Interpolate
   for (size_t i = 1; i < x.size(); i++) {
-    if (x[i] > point)
-      return linear(lastx, lasty, x[i], y[i], point);
-    lastx = x[i];
-    lasty = y[i];
+    if (x[i] > point) return linear(last[0], last[1], x[i], y[i], point);
+    last = {x[i], y[i]};
   }
-  return 1;
+  throw;
 }
-
-struct PlotPoint {
-  real x, y;
-};
-
-vector<PlotPoint> ternplot(const vector<real> &c1, const vector<real> &c2) {
-  vector<PlotPoint> out(c1.size());
-  for (int i = 0; i < c1.size(); i++)
-    out[i] = {c1[i], c2[i]};
-  return out;
-}
-
-void ExoterDE(const string &title, real M0, real sigmaMun, real R0,
-              real sigmaRun) {
-  printf("Calculating curves for planet: %s\n", title.c_str());
-  // Initialize vectors
-  vector<vector<PlotPoint>> hd(7);
-  vector<real> iron[7], silicate[7];
-  for (int i = 0; i < 7; i++) {
-    iron[i] = vector<real>();
-    silicate[i] = vector<real>();
-  }
-  DensityPressureData A("iron.txt"), B("silicate.txt"), C("water.txt");
-  const real ratio = interpolate({0.5, 1, 2, 4, 8, 16, 20},
-                                 {3.3, 3.4, 3.6, 3.9, 4.1, 4.4, 4.5}, M0);
-  const real correction =
-      sqrt(pow((sigmaMun / M0), 2) + pow(ratio * (sigmaRun / R0), 2)) /
-      (abs(sigmaMun / M0) + ratio * abs(sigmaRun / R0));
-  const real sigmaM = correction * sigmaMun;
-  const real sigmaR = correction * sigmaRun;
-  for (int v = -3; v < 4; v++) {
-    real M = M0 * (1.0 + v * sigmaM / M0) * Mearth,
-         R = R0 * (1.0 - v * sigmaR / R0) * Rearth;
-    real P0 = 0, a = 0.0, b, mid, l;
-    int i = 0;
-    bool u1, u2, j, k, sign;
-    u1 = u2 = j = k = false;
-    while (((a >= 0.0) && (a <= 1.0)) && !(j && k)) {
-      mid = (1.0 - a) / 2.0;
-      l = (b = mid) / 2.0;
-      u1 = u2 = false;
-      while ((l > 5e-4)) {
-        sign = (ode45(0, R, M, P0, a, b, M, R, A, B, C).m / M) > 0;
-        b += (sign ? l : -l);
-        sign ? u1 = true : u2 = true;
-        l /= 2.0;
-      }
-      if (u1 && u2) {
-        i++;
-        iron[v + 3].push_back(a);
-        silicate[v + 3].push_back(b);
-        k = !(j = true);
-      } else
-        k = true;
-      a += ASTEP;
+void CalcCurve(const string &title, ℝ M, ℝ R, int v) {
+  vector<ℝ> Fe = vector<ℝ>(), Si = vector<ℝ>();
+  ℝ P0 = 0, a = 0, b, l, i = 0;
+  bool u1, u2, j = false, k = false, sign = false;
+  while ((a <= 1.0) && !(j && k)) {
+    l = (b = (1.0 - a) / 2.0) / 2.0;
+    u1 = u2 = false;
+    while ((l > 5e-4)) {
+      sign = ode4(0, R, M, P0, a, b, M, R) / M > 0;
+      b += (sign ? l : -l);
+      (sign ? u1 : u2) = true;
+      l /= 2.0;
     }
-    printf("i : %d\n", i);
-    if (i > 3)
-      hd[v + 3] = ternplot(
-          iron[v + 3],
-          polyval(polyfit(iron[v + 3], silicate[v + 3], 3), iron[v + 3]));
-    else if (i > 0)
-      hd[v + 3] = ternplot(iron[v + 3], silicate[v + 3]);
-    else
-      printf("Curve for mass=%f and radius=%f does not exist.\n",
-             M0 * (1 + v * sigmaM), R0 * (1 - v * sigmaR));
+    if (u1 && u2) {
+      i++;
+      Fe.push_back(a);
+      Si.push_back(b);
+      k = !(j = true);
+    } else
+      k = true;
+    a += ASTEP;
   }
-  for (int i = 0; i < hd.size(); i++) {
-    CSVWriter csv("out/" + title + to_string(i) + ".csv", 2);
-    for (auto it = hd[i].begin(); it != hd[i].end(); ++it)
-      csv.WritePoint({it->x, it->y});
-  }
+  printf("i : %f\n", i);
+  CSVWriter csv("out/" + title + to_string(v) + ".csv", 2);
+  if (i > 0.5)
+    for (int n = 0; n < Fe.size(); n++)
+      csv.WritePoint(
+          {Fe[n], i > 3 ? polyval(polyfit(Fe, Si, 3), {Fe[n]})[0] : Si[n]});
+  else
+    printf("Curve for (m:%f, r:%f) does't exist.\n", M / Mearth, R / Rearth);
+}
+void ExoterDE(const string &title, ℝ M0, ℝ sigmaMun, ℝ R0, ℝ sigmaRun) {
+  printf("Calculating curves for planet: %s\n", title.c_str());
+  const ℝ ratio = interpolate({0.5, 1, 2, 4, 8, 16, 20},
+                              {3.3, 3.4, 3.6, 3.9, 4.1, 4.4, 4.5}, M0),
+          correction =
+              sqrt(pow(sigmaMun / M0, 2) + pow(ratio * sigmaRun / R0, 2)) /
+              (abs(sigmaMun / M0) + ratio * abs(sigmaRun / R0)),
+          sigmaM = correction * sigmaMun, sigmaR = correction * sigmaRun;
+  thread threads[7];
+  for (int v = 0; v < 7; v++)
+    threads[v] =
+        thread(CalcCurve, title, M0 * (1.0 + (v - 3) * sigmaM / M0) * Mearth,
+               R0 * (1.0 - (v - 3) * sigmaR / R0) * Rearth, v);
+  for (int i = 0; i < 7; i++) threads[i].join();
 }
