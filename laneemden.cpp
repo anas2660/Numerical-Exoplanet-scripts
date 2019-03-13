@@ -14,9 +14,8 @@ void Integrate(const string &title, ODE::StepType type) {
   printf("%s error: %f\n", title.c_str(), dξ * error / ξmax);
 }
 int main() {
-  thread euler(Integrate, "euler", ODE::Euler);
-  thread rungekutta(Integrate, "rungekutta", ODE::RK4);
-  euler.join();
-  rungekutta.join();
+  vector<thread *> t = {new thread(Integrate, "euler", ODE::Euler),
+                        new thread(Integrate, "rungekutta", ODE::RK4)};
+  for (auto thr : t) thr->join();
   if (PLOT) system("python intplot.py");
 }
