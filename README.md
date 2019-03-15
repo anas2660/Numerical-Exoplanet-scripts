@@ -3,7 +3,7 @@
 ## Requirements
 - Clang (clang++)
 - Python 3
- - matplotlib
- - numpy
- - python-ternary
+ -- matplotlib
+ -- numpy
+ -- python-ternary
 
